@@ -1,0 +1,136 @@
+:root {
+  --bg: #efe7d9;
+  --bg-deep: #d8ccb5;
+  --panel: rgba(250, 246, 240, 0.84);
+  --text: #1f2d33;
+  --muted: #5e6f74;
+  --border: rgba(31, 45, 51, 0.12);
+  --accent: #f06a28;
+  --accent-strong: #c94e12;
+  --shadow-soft: 0 18px 50px rgba(44, 34, 24, 0.09);
+  --font-body: 'Aptos', 'Segoe UI', sans-serif;
+  --font-display: 'Bahnschrift', 'Aptos', 'Segoe UI', sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', monospace;
+
+  color: var(--text);
+  font: 17px/1.5 var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.5), transparent 30%),
+    linear-gradient(145deg, var(--bg), var(--bg-deep));
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+select,
+input,
+textarea {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text);
+}
+
+button {
+  padding: 12px 16px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  border: none;
+  color: #fff7f0;
+  cursor: pointer;
+  transition: transform 140ms ease, opacity 140ms ease, filter 140ms ease;
+}
+
+button:hover:enabled {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button.ghost {
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--accent-strong);
+  border: 1px solid rgba(240, 106, 40, 0.24);
+}
+
+button.danger {
+  background: linear-gradient(180deg, #ca3d2e, #8b241a);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+strong {
+  color: var(--text);
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 5vw, 4.8rem);
+  letter-spacing: -0.04em;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+p {
+  margin: 0;
+}

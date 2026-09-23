@@ -1,0 +1,63 @@
+{
+  "name": "stt-tts",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Windows speech-to-speech desktop app for Ollama with STT, TTS, and local retrieval.",
+  "author": "GitHub Copilot",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:web\" \"npm:dev:electron\"",
+    "dev:web": "vite",
+    "dev:electron": "wait-on tcp:5173 && electron .",
+    "setup:backend": "py -3.11 -m venv backend\\.venv && backend\\.venv\\Scripts\\python.exe -m pip install --upgrade pip && backend\\.venv\\Scripts\\python.exe -m pip install -r backend\\requirements.txt",
+    "install:backend": "backend\\.venv\\Scripts\\python.exe -m pip install -r backend\\requirements.txt",
+    "start": "electron .",
+    "build": "tsc -b && vite build",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "wait-on": "^9.1.0"
+  },
+  "build": {
+    "appId": "local.stttts.voice-assistant",
+    "productName": "Local Voice Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": [
+          "app/**/*",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
