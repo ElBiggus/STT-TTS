@@ -5,7 +5,7 @@ const defaultSystemPrompt =
   'You are a concise local assistant. Prefer grounded answers when the knowledge base has relevant context.'
 
 const welcomeMessageContent =
-  'Local Voice Studio is ready. Pick an Ollama model, add reference files if you want retrieval, then type or record your request.'
+  'TTS-STT Voice Studio is ready. Pick an Ollama model, add reference files if you want retrieval, then type or record your request.'
 
 type ModelInfo = {
   name: string
@@ -781,8 +781,7 @@ function App() {
           <p className="eyebrow">Windows speech-to-speech workstation</p>
           <h1>Local Voice Studio</h1>
           <p className="hero-copy">
-            Electron desktop shell, Ollama chat, Whisper transcription, Kokoro speech, and a
-            built-in local vector store for retrieval.
+            Speech-to-text and text-to-speech UI for Ollama.
           </p>
         </div>
         <div className="status-card">
@@ -796,7 +795,7 @@ function App() {
         <aside className="panel controls-panel">
           <div className="panel-header">
             <h2>Session Controls</h2>
-            <span>{window.assistantRuntime?.platform ?? 'browser'} runtime</span>
+            {/*<span>{window.assistantRuntime?.platform ?? 'browser'} runtime</span> */}
           </div>
 
           <label className="field">
@@ -857,7 +856,7 @@ function App() {
               checked={useKnowledge}
               onChange={(event) => setUseKnowledge(event.target.checked)}
             />
-            <span>Use local knowledge retrieval for chat and speech</span>
+            <span width="300px">Use local knowledge retrieval for chat and speech</span>
           </label>
 
           <div className="button-row">
@@ -973,7 +972,7 @@ function App() {
               </button>
             </div>
             <p className="composer-hint">
-              `Voice roundtrip` stays push-to-talk. `Hands-free chat` listens for speech, waits for a natural pause, then sends the turn automatically.
+              "Voice round trip" is a "push-to-talk" mode; enable it, speak, and then click the button again. "Hands-free chat" listens for speech, waits for a natural pause, then sends the turn automatically.
             </p>
           </div>
         </section>
