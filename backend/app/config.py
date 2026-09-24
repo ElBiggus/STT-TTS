@@ -28,6 +28,9 @@ class Settings:
     chunk_overlap: int = int(os.getenv("KNOWLEDGE_CHUNK_OVERLAP", "200"))
     kokoro_model_path: Path = Path(os.getenv("KOKORO_MODEL_PATH", MODEL_DIR / "kokoro-v1.0.onnx"))
     kokoro_voices_path: Path = Path(os.getenv("KOKORO_VOICES_PATH", MODEL_DIR / "voices-v1.0.bin"))
+    frontend_dist_path: Path | None = (
+        Path(os.environ["FRONTEND_DIST_PATH"]) if os.getenv("FRONTEND_DIST_PATH") else ROOT_DIR / "dist"
+    )
 
 
 settings = Settings()

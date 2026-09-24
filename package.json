@@ -48,6 +48,10 @@
     ],
     "extraResources": [
       {
+        "from": "dist",
+        "to": "dist"
+      },
+      {
         "from": "backend",
         "to": "backend",
         "filter": [

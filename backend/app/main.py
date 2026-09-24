@@ -10,6 +10,8 @@ import requests
 import soundfile as sf
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from PyPDF2 import PdfReader
 from starlette.responses import StreamingResponse
@@ -29,6 +31,7 @@ app.add_middleware(
 )
 
 store = SQLiteVectorStore(settings.database_path)
+frontend_dist_dir = settings.frontend_dist_path
 
 
 class ConversationMessage(BaseModel):
@@ -298,3 +301,25 @@ async def speech_to_speech(
         "mime_type": "audio/wav",
         "sources": hits,
     }
+
+
+if frontend_dist_dir and frontend_dist_dir.exists():
+    assets_dir = frontend_dist_dir / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+    @app.get("/", include_in_schema=False)
+    def serve_frontend_index():
+        return FileResponse(frontend_dist_dir / "index.html")
+
+
+    @app.get("/{requested_path:path}", include_in_schema=False)
+    def serve_frontend_path(requested_path: str):
+        if requested_path.startswith(("api/", "docs", "health", "openapi.json", "redoc")):
+            raise HTTPException(status_code=404, detail="Not found")
+
+        candidate = frontend_dist_dir / requested_path
+        if requested_path and candidate.is_file():
+            return FileResponse(candidate)
+
+        return FileResponse(frontend_dist_dir / "index.html")

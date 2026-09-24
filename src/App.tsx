@@ -56,7 +56,19 @@ type VoicesResponse = {
   default_lang: string
 }
 
-const apiBaseUrl = window.assistantRuntime?.apiBaseUrl ?? 'http://127.0.0.1:8000'
+const defaultNetworkExposure: AssistantNetworkExposure = {
+  openToLan: false,
+  openToWan: false,
+  localUrl: window.assistantRuntime?.apiBaseUrl ?? 'http://127.0.0.1:8000',
+  lanUrls: [],
+  wanUrlHint: '',
+  remoteUiAvailable: false,
+}
+
+const apiBaseUrl = window.assistantRuntime?.apiBaseUrl ?? window.location.origin
+const supportsNetworkExposureControls = Boolean(
+  window.assistantRuntime?.getNetworkExposure && window.assistantRuntime?.setNetworkExposure,
+)
 const storageKeys = {
   selectedModel: 'stt-tts:selected-model',
   voice: 'stt-tts:voice',
@@ -74,9 +86,17 @@ function readStoredValue(key: string, fallback: string) {
   return storedValue && storedValue.trim() ? storedValue : fallback
 }
 
+function createMessageId() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
 function createWelcomeMessage(): ChatMessage {
   return {
-    id: crypto.randomUUID(),
+    id: createMessageId(),
     role: 'assistant',
     content: welcomeMessageContent,
     localOnly: true,
@@ -99,7 +119,7 @@ function sanitizeMessage(value: unknown): ChatMessage | null {
   }
 
   return {
-    id: typeof candidate.id === 'string' && candidate.id.trim() ? candidate.id : crypto.randomUUID(),
+    id: typeof candidate.id === 'string' && candidate.id.trim() ? candidate.id : createMessageId(),
     role: candidate.role,
     content: trimmedContent,
     sources: Array.isArray(candidate.sources)
@@ -175,6 +195,8 @@ function App() {
   const [recording, setRecording] = useState(false)
   const [recordingMode, setRecordingMode] = useState<RecorderMode | null>(null)
   const [handsFreeActive, setHandsFreeActive] = useState(false)
+  const [networkBusy, setNetworkBusy] = useState(false)
+  const [networkExposure, setNetworkExposure] = useState<AssistantNetworkExposure>(defaultNetworkExposure)
   const [status, setStatus] = useState('Starting local backend…')
 
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -245,6 +267,14 @@ function App() {
       requestJson<VoicesResponse>('/api/voices'),
     ])
 
+    if (window.assistantRuntime?.getNetworkExposure) {
+      try {
+        setNetworkExposure(await window.assistantRuntime.getNetworkExposure())
+      } catch {
+        setNetworkExposure(defaultNetworkExposure)
+      }
+    }
+
     let summary = 'Ready for chat, transcription, and speech roundtrips.'
 
     if (modelsResult.status === 'fulfilled') {
@@ -310,6 +340,40 @@ function App() {
     setMessages([createWelcomeMessage()])
     setDraft('')
     setStatus('Started a new chat.')
+  }
+
+  async function updateNetworkExposure(nextValue: { openToLan: boolean; openToWan: boolean }) {
+    if (!window.assistantRuntime?.setNetworkExposure) {
+      setStatus('Network sharing controls are only available in the Electron desktop app.')
+      return
+    }
+
+    setNetworkBusy(true)
+    setStatus(
+      nextValue.openToWan
+        ? 'Opening the app to WAN connections…'
+        : nextValue.openToLan
+          ? 'Opening the app to LAN connections…'
+          : 'Closing external network access…',
+    )
+
+    try {
+      const updatedExposure = await window.assistantRuntime.setNetworkExposure(nextValue)
+      setNetworkExposure(updatedExposure)
+
+      if (updatedExposure.openToWan) {
+        setStatus('WAN access enabled. Make sure Windows Firewall allows the app or port 8000, and configure router port forwarding if you want internet access.')
+      } else if (updatedExposure.openToLan) {
+        setStatus('LAN access enabled. Make sure Windows Firewall allows the app or port 8000 for other local devices.')
+      } else {
+        setStatus('Network sharing disabled. The app is available only on this machine.')
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to update network sharing.'
+      setStatus(message)
+    } finally {
+      setNetworkBusy(false)
+    }
   }
 
   function exportConversation() {
@@ -392,7 +456,7 @@ function App() {
     }
 
     const nextUserMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: createMessageId(),
       role: 'user',
       content: trimmed,
     }
@@ -417,7 +481,7 @@ function App() {
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: createMessageId(),
           role: 'assistant',
           content: payload.reply,
           sources: payload.sources,
@@ -597,9 +661,9 @@ function App() {
 
       setMessages((current) => [
         ...current,
-        { id: crypto.randomUUID(), role: 'user', content: payload.transcript },
+        { id: createMessageId(), role: 'user', content: payload.transcript },
         {
-          id: crypto.randomUUID(),
+          id: createMessageId(),
           role: 'assistant',
           content: payload.reply,
           sources: payload.sources,
@@ -859,15 +923,73 @@ function App() {
             <span>Use local knowledge retrieval for chat and speech</span>
           </label>
 
+          {supportsNetworkExposureControls ? (
+            <div className="sharing-panel">
+              <div className="sharing-header">
+                <strong>Network Access</strong>
+                <span>{networkExposure.openToWan ? 'WAN' : networkExposure.openToLan ? 'LAN' : 'Local only'}</span>
+              </div>
+
+              <label className="toggle toggle-detail">
+                <input
+                  type="checkbox"
+                  checked={networkExposure.openToLan}
+                  disabled={networkBusy}
+                  onChange={(event) => {
+                    const nextOpenToLan = event.target.checked
+                    void updateNetworkExposure({
+                      openToLan: nextOpenToLan,
+                      openToWan: nextOpenToLan ? networkExposure.openToWan : false,
+                    })
+                  }}
+                />
+                <span>
+                  <strong>Open to LAN</strong>
+                  <small>Allow devices on your local network to open the UI and call the API on port 8000. Windows Firewall must allow the app or port.</small>
+                </span>
+              </label>
+
+              <label className="toggle toggle-detail">
+                <input
+                  type="checkbox"
+                  checked={networkExposure.openToWan}
+                  disabled={networkBusy}
+                  onChange={(event) => {
+                    const nextOpenToWan = event.target.checked
+                    void updateNetworkExposure({
+                      openToLan: nextOpenToWan ? true : networkExposure.openToLan,
+                      openToWan: nextOpenToWan,
+                    })
+                  }}
+                />
+                <span>
+                  <strong>Open to WAN</strong>
+                  <small>Allow internet access too. This also enables LAN and requires both Windows Firewall access and router port forwarding.</small>
+                </span>
+              </label>
+
+              <div className="sharing-details">
+                <span>This device: {networkExposure.localUrl}</span>
+                {networkExposure.lanUrls.map((url) => (
+                  <span key={url}>LAN: {url}</span>
+                ))}
+                {networkExposure.openToWan && networkExposure.wanUrlHint ? <span>{networkExposure.wanUrlHint}</span> : null}
+                {(networkExposure.openToLan || networkExposure.openToWan) && !networkExposure.remoteUiAvailable ? (
+                  <span>Remote UI hosting is unavailable until a production build exists in the dist folder.</span>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
           <div className="button-row">
-            <button type="button" onClick={() => void bootstrap()} disabled={busy || uploading}>
+            <button type="button" onClick={() => void bootstrap()} disabled={busy || uploading || networkBusy}>
               Refresh models
             </button>
             <button
               type="button"
               className="secondary"
               onClick={() => void speakText('This is an example of your selected voice.')}
-              disabled={busy}
+              disabled={busy || networkBusy}
             >
               Test TTS
             </button>
