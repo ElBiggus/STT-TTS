@@ -1,9 +1,9 @@
 {
   "name": "stt-tts",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.1",
   "description": "Windows speech-to-speech desktop app for Ollama with STT, TTS, and local retrieval.",
-  "author": "GitHub Copilot",
+  "author": "ElBiggus",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {

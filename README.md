@@ -56,7 +56,8 @@ This starts Vite and launches Electron. Electron starts the FastAPI backend auto
 ## Features
 
 - `Record to text`: captures microphone audio and inserts the transcript into the composer
-- `Voice roundtrip`: microphone input goes through STT, Ollama, and TTS in one flow
+- `Voice roundtrip`: microphone input goes through STT, Ollama, and TTS in a "push-to-talk" flow
+- `Hands-freee chat`: microphone input is constanly "listened to", and STT will activate at a "natural pause" allowing for free-flowing conversations
 - `Local Knowledge`: upload `.txt`, `.md`, `.pdf`, `.py`, `.json`, or `.csv` files for retrieval
 - `System prompt`: edit the assistant behavior live from the UI
 - `Model selector`: switches between models exposed by your local Ollama server
