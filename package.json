@@ -37,7 +37,7 @@
   },
   "build": {
     "appId": "local.stttts.voice-assistant",
-    "productName": "Local Voice Studio",
+    "productName": "STT-Ollama-TTS",
     "directories": {
       "output": "release"
     },

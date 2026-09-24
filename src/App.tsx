@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const defaultSystemPrompt =
-  'You are a concise local assistant. Prefer grounded answers when the knowledge base has relevant context.'
+  'You are a local assistant acting as the "brain" in a speech-to-speech pipeline. You should give concise answers suitable for reading aloud: no markdown, no long lists, no lengthy preamble, no emojis, etc., and avoid unnecessary detail unless the user asks for more information. There may be additional information in a local knowledge base; use this as a reference if it contains relevant context. Be friendly but professional. User input is transcribed directly from speech and may contain filler words such as "er" or "umm" that should be ignored. Abbreviations, numbers, etc., should be output in such a way that the TTS engine will produce coherent output; for example "There are 2.54cm in an inch" should be output as "There are two point five-four centimeters in an inch".'
 
 const welcomeMessageContent =
   'TTS-STT Voice Studio is ready. Pick an Ollama model, add reference files if you want retrieval, then type or record your request.'
@@ -778,8 +778,8 @@ function App() {
     <main className="app-shell">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">Windows speech-to-speech workstation</p>
-          <h1>Local Voice Studio</h1>
+          <p className="eyebrow"><a href="https://github.com/ElBiggus/STT-TTS">Visit on GitHub</a></p>
+          <h1>STT-Ollama-TTS</h1>
           <p className="hero-copy">
             Speech-to-text and text-to-speech UI for Ollama.
           </p>
@@ -856,7 +856,7 @@ function App() {
               checked={useKnowledge}
               onChange={(event) => setUseKnowledge(event.target.checked)}
             />
-            <span width="300px">Use local knowledge retrieval for chat and speech</span>
+            <span>Use local knowledge retrieval for chat and speech</span>
           </label>
 
           <div className="button-row">
@@ -866,7 +866,7 @@ function App() {
             <button
               type="button"
               className="secondary"
-              onClick={() => void speakText('Local Voice Studio is online.')}
+              onClick={() => void speakText('This is an example of your selected voice.')}
               disabled={busy}
             >
               Test TTS
